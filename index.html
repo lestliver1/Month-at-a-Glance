@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A calm, uncluttered monthly planner for dates, times, and recurring events.">
+  <meta name="theme-color" content="#173a37">
+  <title>Month at a Glance</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23173a37'/%3E%3Crect x='13' y='17' width='38' height='34' rx='7' fill='%23f6f4ed'/%3E%3Cpath d='M13 27h38' stroke='%23d8a750' stroke-width='5'/%3E%3Cpath d='M23 11v12M41 11v12' stroke='%23f6f4ed' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='37' r='3' fill='%23173a37'/%3E%3Ccircle cx='33' cy='37' r='3' fill='%23173a37'/%3E%3Ccircle cx='42' cy='37' r='3' fill='%23173a37'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#calendar" aria-label="Month at a Glance home">
+      <span class="brand-mark" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </span>
+      <span>Month at a Glance</span>
+    </a>
+    <div class="topbar-actions">
+      <button class="secondary-button share-button" id="shareButton" type="button">Share view</button>
+      <button class="primary-button" id="newEventButton" type="button">
+        <span aria-hidden="true">+</span> Add event
+      </button>
+    </div>
+  </header>
+
+  <main class="planner-shell" id="calendar">
+    <section class="planner-heading" aria-labelledby="monthTitle">
+      <div>
+        <p class="eyebrow">Monthly planner</p>
+        <h1 id="monthTitle" aria-live="polite"></h1>
+      </div>
+      <div class="month-navigation" aria-label="Calendar navigation">
+        <button class="icon-button" id="previousMonth" type="button" aria-label="Previous month">←</button>
+        <button class="today-button" id="todayButton" type="button">Today</button>
+        <button class="icon-button" id="nextMonth" type="button" aria-label="Next month">→</button>
+      </div>
+    </section>
+
+    <section class="calendar-card" aria-label="Monthly calendar">
+      <div class="weekday-row" aria-hidden="true">
+        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </section>
+
+    <footer class="planner-footer">
+      <span><i class="legend-dot recurring"></i> Recurring</span>
+      <span><i class="legend-dot one-time"></i> One-time</span>
+      <span class="footer-note">Events stay on this device.</span>
+    </footer>
+  </main>
+
+  <dialog class="event-dialog" id="eventDialog" aria-labelledby="dialogTitle">
+    <form id="eventForm" method="dialog" novalidate>
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow" id="dialogEyebrow">Plan your day</p>
+          <h2 id="dialogTitle">Add an event</h2>
+        </div>
+        <button class="close-button" id="closeDialogButton" type="button" aria-label="Close">×</button>
+      </div>
+
+      <input id="eventId" type="hidden">
+
+      <label for="eventName">Event name</label>
+      <input id="eventName" name="eventName" type="text" maxlength="60" placeholder="Doctor appointment" autocomplete="off" required>
+      <p class="field-error" id="nameError" role="alert"></p>
+
+      <div class="form-row">
+        <div>
+          <label for="eventDate">Date</label>
+          <input id="eventDate" name="eventDate" type="date" required>
+        </div>
+        <div>
+          <label for="eventSpan">Event length</label>
+          <select id="eventSpan" name="eventSpan">
+            <option value="day">This day only</option>
+            <option value="until-month-end">Until end of month</option>
+            <option value="whole-month">Whole month</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label for="eventStartTime">Start time</label>
+          <input id="eventStartTime" name="eventStartTime" type="time" required>
+        </div>
+        <div>
+          <label for="eventEndTime">End time</label>
+          <input id="eventEndTime" name="eventEndTime" type="time" required>
+        </div>
+      </div>
+      <p class="field-error" id="timeError" role="alert"></p>
+
+      <label for="eventRepeat">Repeats</label>
+      <select id="eventRepeat" name="eventRepeat">
+        <option value="none">Does not repeat</option>
+        <option value="weekly">Every week</option>
+        <option value="monthly">Every month</option>
+      </select>
+
+      <div class="skip-dates" id="skipDatesSection" hidden>
+        <label for="skipDate">Skip an occurrence</label>
+        <div class="skip-date-entry">
+          <input id="skipDate" type="date">
+          <button class="secondary-button" id="addSkipDateButton" type="button">Skip date</button>
+        </div>
+        <div class="skip-date-list" id="skipDateList" aria-live="polite"></div>
+        <p class="field-hint">Skipped dates are not shown for this repeating event.</p>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="delete-button" id="deleteEventButton" type="button" hidden>Delete</button>
+        <div class="action-group">
+          <button class="secondary-button" id="cancelButton" type="button">Cancel</button>
+          <button class="primary-button" type="submit">Save event</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="share-dialog" id="shareDialog" aria-labelledby="shareDialogTitle">
+    <form id="shareForm" novalidate>
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Read-only link</p>
+          <h2 id="shareDialogTitle">Share this calendar</h2>
+        </div>
+        <button class="close-button" id="closeShareDialogButton" type="button" aria-label="Close">×</button>
+      </div>
+      <p class="share-intro">Choose how each event appears. The link opens a separate, read-only calendar and never changes your events.</p>
+      <div class="share-event-list" id="shareEventList"></div>
+      <p class="field-hint">Anyone with the link can see the event details you choose to share. It is not password-protected.</p>
+      <div class="share-link-result" id="shareLinkResult" hidden>
+        <label for="shareLink">Your read-only link</label>
+        <div class="share-link-row">
+          <input id="shareLink" type="url" readonly>
+          <button class="primary-button" id="copyShareLinkButton" type="button">Copy link</button>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancelShareButton" type="button">Cancel</button>
+        <button class="primary-button" type="submit">Create link</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
